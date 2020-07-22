@@ -1,7 +1,13 @@
-<div>Teachable Machine Pose Model</div>
+<link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
 <button type="button" onclick="init()">Start</button>
 <div><canvas id="canvas"></canvas></div>
-<div id="label-container"></div>
+<div id="label-container" style="font-size:20px;"></div>
+<div id="label-out" style="font-size:20px;"></div>
+
+<div  class="w3-border" style="width:50%">
+  <p>CurlUp</p><div id ="slide1" class="w3-grey" style="height:24px;width:0%"></div>
+  <p>CurlDown</p><div id ="slide2" class="w3-grey" style="height:24px;width:0%"></div>
+</div>
 <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@1.3.1/dist/tf.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/pose@0.8/dist/teachablemachine-pose.min.js"></script>
 <script type="text/javascript">
@@ -10,7 +16,7 @@
 
     // the link to your model provided by Teachable Machine export panel
     const URL = "my_model/";
-    let model, webcam, ctx, labelContainer, maxPredictions;
+    let model, webcam, ctx, labelContainer, maxPredictions, count;
 
     async function init() {
         const modelURL = URL + "model.json";
@@ -35,6 +41,9 @@
         canvas.width = size; canvas.height = size;
         ctx = canvas.getContext("2d");
         labelContainer = document.getElementById("label-container");
+        labelOut = document.getElementById("label-out");
+        labelUp = document.getElementById("slide1");
+        labelDown = document.getElementById("slide2");
         for (let i = 0; i < maxPredictions; i++) { // and class labels
             labelContainer.appendChild(document.createElement("div"));
         }
@@ -45,7 +54,7 @@
         await predict();
         window.requestAnimationFrame(loop);
     }
-
+    count = 0
     async function predict() {
         // Prediction #1: run input through posenet
         // estimatePose can take in an image, video or canvas html element
@@ -54,9 +63,24 @@
         const prediction = await model.predict(posenetOutput);
 
         for (let i = 0; i < maxPredictions; i++) {
-            const classPrediction =
-                prediction[i].className + ": " + prediction[i].probability.toFixed(2);
-            labelContainer.childNodes[i].innerHTML = classPrediction;
+            //const classPrediction =
+                //prediction[i].className + ": " + prediction[i].probability.toFixed(2);
+            //labelContainer.childNodes[i].innerHTML = classPrediction;
+
+            }
+
+        if(prediction[0].probability.toFixed(2) > prediction[1].probability.toFixed(2)){
+            labelDown.innerHTML = prediction[0].probability.toFixed(2) * 100 + "%" ;
+            labelDown.style.width = prediction[0].probability.toFixed(2) * 100;
+            labelUp.innerHTML = prediction[1].probability.toFixed(2) * 100 + "%" ;
+            labelUp.style.width = prediction[1].probability.toFixed(2) * 100;
+
+
+        } else {
+                labelUp.innerHTML = prediction[1].probability.toFixed(2) * 100 + "%" ;
+                labelUp.style.width = prediction[1].probability.toFixed(2) * 100;
+                labelDown.innerHTML = prediction[0].probability.toFixed(2) * 100 + "%" ;
+                labelDown.style.width = prediction[0].probability.toFixed(2) * 100;
         }
 
         // finally draw the poses
